@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Barkod Yazdırma</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-image: url(arvato2.png);
+		    
+         
+          
+            
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 300px;
+            max-width: 100%;
+        }
+        h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 14px;
+            color: #333;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            border: none;
+            border-radius: 4px;
+            background-color: #007bff;
+            color: #fff;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .barcode-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 50mm;
+            height: 30mm;
+            margin: 0;
+            padding: 0;
+            background-image: url('background.jpg'); /* Arka plan resmi */
+            background-size: contain; /* Resmi etiket alanına sığdır */
+            background-position: center; /* Resmi ortala */
+            background-repeat: no-repeat; /* Resmi tekrar etme */
+        }
+        .barcode {
+            width: 100%; /* Etiket boyutu genişliği */
+            height: 100%; /* Etiket boyutu yüksekliği */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #ddd;
+            box-sizing: border-box;
+            background-color: rgba(255, 255, 255, 0.8); /* Hafif opak arka plan */
+        }
+        .barcode svg {
+            width: 90%; /* SVG'nin genişliğini etiket genişliğine göre ayarla */
+            height: auto; /* SVG'nin yüksekliğini otomatik ayarla */
+        }
+        .barcode p {
+            margin: 0;
+            font-size: 10px;
+            color: #333;
+            text-align: center;
+        }
+        @media print {
+            body {
+                margin: 0;
+                padding: 0;
+                overflow: hidden;
+            }
+            .container {
+                display: none;
+            }
+            .barcode-container {
+                width: 50mm;
+                height: 30mm;
+                margin: 0;
+                padding: 0;
+                background-image: url('background.jpg'); /* Arka plan resmi */
+                background-size: contain; /* Resmi etiket alanına sığdır */
+                background-position: center; /* Resmi ortala */
+                background-repeat: no-repeat; /* Resmi tekrar etme */
+            }
+            .barcode {
+                page-break-after: always;
+            }
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.0/dist/JsBarcode.all.min.js"></script>
+</head>
+<body>
+    
+    <div class="container">
+        <h1>PS-MP Oluşturucu</h1>
+        <div class="form-group">
+            <label for="startNumber">Başlangıç Numarası:</label>
+            <input type="number" id="startNumber" placeholder="Etiket numarasını girin..." />
+        </div>
+        <div class="form-group">
+            <label for="quantity">Kaç Adet Basmak İstiyorsunuz:</label>
+            <input type="number" id="quantity" placeholder="Etiket adedini girin..." />
+        </div>
+        <button onclick="generateBarcodes()">Barkodları Oluştur</button>
+        <button onclick="printBarcodes()">Barkodları Yazdır</button>
+    </div>
+    <div class="barcode-container" id="barcode-container">
+        <!-- Barkodlar burada dinamik olarak eklenecek -->
+    </div>
+
+    <script>
+        function generateBarcodes() {
+            const container = document.getElementById('barcode-container');
+            container.innerHTML = ''; // Önceki barkodları temizle
+            
+            const startNumber = parseInt(document.getElementById('startNumber').value, 10);
+            const quantity = parseInt(document.getElementById('quantity').value, 10);
+            
+            if (isNaN(startNumber) || isNaN(quantity) || quantity <= 0) {
+                alert('Lütfen geçerli bir başlangıç numarası ve adet girin.');
+                return;
+            }
+
+            // Clear previous barcode data
+            window.barcodes = [];
+            
+            for (let i = 0; i < quantity; i++) {
+                const code = `ps-mp${startNumber + i}`;
+                const barcodeDiv = document.createElement('div');
+                barcodeDiv.className = 'barcode';
+                
+                // Barkod görselini oluştur
+                const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                svg.setAttribute('width', '100%');
+                svg.setAttribute('height', 'auto'); // Yüksekliği otomatik ayarla
+                svg.setAttribute('viewBox', '0 0 50 30');
+                
+                JsBarcode(svg, code, {
+                    format: 'CODE39',
+                    displayValue: false,
+                    width: 1,
+                    height: 25, // Barkod yüksekliği
+                    textMargin: 0
+                });
+                
+                barcodeDiv.appendChild(svg);
+                
+                // Barkod metni ekle
+                const barcodeTextElem = document.createElement('p');
+                barcodeTextElem.textContent = code;
+                barcodeTextElem.style.fontSize = '10px';
+                barcodeDiv.appendChild(barcodeTextElem);
+                
+                container.appendChild(barcodeDiv);
+
+                // Save barcode data for future use
+                window.barcodes.push({ code, svg: svg.outerHTML });
+            }
+        }
+
+        function printBarcodes() {
+            window.print();
+        }
+    </script>
+</body>
+</html>
