@@ -9,35 +9,19 @@
             margin: 0;
             padding: 0;
             font-family: Arial, sans-serif;
-            background-image: url('arvato2.png');
-            background-color: #f4f4f4;
+            background-image: url(arvato2.png);
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
         }
-        .main-container {
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            width: 100%;
-            max-width: 1200px;
-            height: 90%;
-        }
-        .login-container, .print-container {
+        .container {
             background-color: #fff;
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             width: 300px;
             max-width: 100%;
-            margin: 10px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        .print-container {
-            display: none;
         }
         h1 {
             font-size: 24px;
@@ -100,7 +84,6 @@
             border: 1px solid #ddd;
             box-sizing: border-box;
             background-color: rgba(255, 255, 255, 0.8);
-            margin-bottom: 5mm;
         }
         .barcode svg {
             width: 90%;
@@ -112,39 +95,21 @@
             color: #333;
             text-align: center;
         }
-        .logo {
-            display: block;
-            margin: 0 auto 20px;
-            width: 100px;
-        }
-        .user-logins {
-            margin-top: 20px;
-        }
-        .user-logins table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        .user-logins th, .user-logins td {
-            padding: 10px;
-            border: 1px solid #ddd;
-            text-align: left;
-        }
         @media print {
             body {
                 margin: 0;
                 padding: 0;
                 overflow: hidden;
             }
-            .login-container, .print-container {
+            .container {
                 display: none;
             }
-            .barcode-scroll-container {
-                display: block;
-                width: 100%;
-                max-width: 100%;
+            .barcode-container {
+                width: 50mm;
+                height: 30mm;
             }
-            @page {
-                margin: 0;
+            .barcode {
+                page-break-after: always;
             }
         }
     </style>
@@ -152,96 +117,39 @@
 </head>
 <body>
     
-    <!-- Main Container -->
-    <div class="main-container">
-        <!-- Login Panel -->
-        <div class="login-container" id="login-container">
-            <img src="logo.png" alt="Logo" class="logo">
-            <h1>Giriş Yap</h1>
-            <div class="form-group">
-                <label for="username">Kullanıcı Adı:</label>
-                <input type="text" id="username" placeholder="Kullanıcı adınızı girin..." />
-            </div>
-            <div class="form-group">
-                <label for="password">Şifre:</label>
-                <input type="password" id="password" placeholder="Şifrenizi girin..." />
-            </div>
-            <button onclick="login()">Giriş Yap</button>
-            <p id="login-error" style="color: red; display: none;">Geçersiz kullanıcı adı veya şifre.</p>
+    <div class="container">
+        <h1>PS-MP / PS-MC Oluşturucu</h1>
+        <div class="form-group">
+            <label for="barcodeType">Barkod Türü:</label>
+            <select id="barcodeType">
+                <option value="ps-mp">PS-MP</option>
+                <option value="ps-mc">PS-MC</option>
+            </select>
         </div>
-
-        <!-- Print Panel -->
-        <div class="print-container" id="print-container">
-            <h1>Barkod Yazdırma</h1>
-            <div class="form-group">
-                <label for="barcodeType">Barkod Türü:</label>
-                <select id="barcodeType">
-                    <option value="">Seçiniz</option>
-                    <option value="ps-mp">PS-MP</option>
-                    <option value="ps-mc">PS-MC</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="startNumber">Başlangıç Numarası:</label>
-                <input type="number" id="startNumber" placeholder="Etiket numarasını girin..." />
-            </div>
-            <div class="form-group">
-                <label for="quantity">Kaç Adet Basmak İstiyorsunuz:</label>
-                <input type="number" id="quantity" placeholder="Etiket adedini girin..." />
-            </div>
-            <button onclick="generateBarcodes()">Barkodları Oluştur</button>
-            <button onclick="printBarcodes()">Barkodları Yazdır</button>
-            <div class="barcode-scroll-container" id="barcode-scroll-container">
-                <div class="barcode-container" id="barcode-container">
-                    <!-- Barkodlar burada dinamik olarak eklenecek -->
-                </div>
-            </div>
+        <div class="form-group">
+            <label for="startNumber">Başlangıç Numarası:</label>
+            <input type="number" id="startNumber" placeholder="Etiket numarasını girin..." />
         </div>
+        <div class="form-group">
+            <label for="quantity">Kaç Adet Basmak İstiyorsunuz:</label>
+            <input type="number" id="quantity" placeholder="Etiket adedini girin..." />
+        </div>
+        <button onclick="generateBarcodes()">Barkodları Oluştur</button>
+        <button onclick="printBarcodes()" aria-label="Barkodları Yazdır">Barkodları Yazdır</button>
+    </div>
+    <div class="barcode-container" id="barcode-container">
+        <!-- Barkodlar burada dinamik olarak eklenecek -->
     </div>
 
     <script>
-        // Admin credentials
-        const ADMIN_USERNAME = 'admin';
-        const ADMIN_PASSWORD = 'adminpass';
-        const USERNAME = 'user';
-        const PASSWORD = 'userpass';
-
-        let userLogins = [];
-
-        function login() {
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            const errorElement = document.getElementById('login-error');
-
-            if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
-                document.getElementById('login-container').style.display = 'none';
-                document.getElementById('admin-container').style.display = 'block';
-            } else if (username === USERNAME && password === PASSWORD) {
-                document.getElementById('login-container').style.display = 'none';
-                document.getElementById('print-container').style.display = 'block';
-                logUserLogin(username);
-            } else {
-                errorElement.style.display = 'block';
-            }
-        }
-
-        function logUserLogin(username) {
-            const now = new Date();
-            userLogins.push({ username, time: now.toLocaleString() });
-        }
-
         function generateBarcodes() {
             const container = document.getElementById('barcode-container');
             container.innerHTML = ''; // Önceki barkodları temizle
             
-            const barcodeType = document.getElementById('barcodeType').value;
             const startNumber = parseInt(document.getElementById('startNumber').value, 10);
             const quantity = parseInt(document.getElementById('quantity').value, 10);
+            const barcodeType = document.getElementById('barcodeType').value;
             
-            if (!barcodeType) {
-                alert('Lütfen barkod türünü seçin.');
-                return;
-            }
             if (isNaN(startNumber) || isNaN(quantity) || quantity <= 0) {
                 alert('Lütfen geçerli bir başlangıç numarası ve adet girin.');
                 return;
@@ -252,6 +160,7 @@
                 const barcodeDiv = document.createElement('div');
                 barcodeDiv.className = 'barcode';
                 
+                // Barkod görselini oluştur
                 const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
                 svg.setAttribute('width', '100%');
                 svg.setAttribute('height', 'auto');
@@ -267,16 +176,12 @@
                 
                 barcodeDiv.appendChild(svg);
                 
+                // Barkod metni ekle
                 const barcodeTextElem = document.createElement('p');
                 barcodeTextElem.textContent = code;
                 barcodeDiv.appendChild(barcodeTextElem);
                 
                 container.appendChild(barcodeDiv);
-            }
-        }
-
-                // Save barcode data for future use
-                window.barcodes.push({ code, svg: svg.outerHTML });
             }
         }
 
