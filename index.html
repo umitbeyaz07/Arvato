@@ -156,7 +156,14 @@
             }
 
             for (let i = 0; i < quantity; i++) {
-                const code = `${barcodeType}${startNumber + i}`;
+                let number = startNumber + i;
+
+                // Eğer barcodeType PS-MC ise ve numara 1-99 arasındaysa başına sıfır ekle
+                if (barcodeType === 'ps-mc' && number < 100) {
+                    number = number.toString().padStart(3, '0');
+                }
+
+                const code = `${barcodeType}${number}`;
                 const barcodeDiv = document.createElement('div');
                 barcodeDiv.className = 'barcode';
                 
